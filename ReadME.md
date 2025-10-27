@@ -35,7 +35,7 @@ go build -o geoip-service
 2. Environment Configuration
 Create a .env file:
 
-bash
+```bash
 # Server Configuration
 SERVER_PORT=8080
 
@@ -54,8 +54,9 @@ S3_KEY=databases/GeoLite2-City.mmdb
 # Local storage
 LOCAL_DB_PATH=./geoip.mmdb
 Or set environment variables directly:
+```
 
-bash
+```bash
 export SERVER_PORT=8080
 export REDIS_ADDR=localhost:6379
 export AWS_REGION=us-east-1
@@ -63,32 +64,39 @@ export AWS_ACCESS_KEY_ID=your_access_key
 export AWS_SECRET_ACCESS_KEY=your_secret_key
 export S3_BUCKET=your-bucket-name
 export S3_KEY=path/to/database.mmdb
+```
+
 3. Prepare S3 Bucket
 Upload your MaxMind database to S3:
 
-bash
+```bash
 aws s3 cp GeoLite2-City.mmdb s3://your-bucket-name/databases/GeoLite2-City.mmdb
+```
 4. Run the Service
-bash
+```bash
 ./geoip-service
 Or run directly with Go:
+```
 
-bash
+```bash
 go run main.go
 API Endpoints
 Health Check
 Endpoint: GET /health
+```
 
 Check if the service is running properly.
 
 Response:
 
-json
+```json
 {
   "status": "healthy",
   "timestamp": "2023-10-05T12:00:00Z",
   "service": "geoip-api"
 }
+```
+
 Single IP Lookup
 Endpoint: GET /lookup/{ip}
 
@@ -96,11 +104,12 @@ Get geolocation data for a single IP address.
 
 Example Request:
 
-bash
+```bash
 curl http://localhost:8080/lookup/8.8.8.8
+```
 Response:
 
-json
+```json
 {
   "ip": "8.8.8.8",
   "country": "United States",
@@ -111,6 +120,8 @@ json
   "longitude": -122.0838,
   "accuracy_radius": 1000
 }
+```
+
 Batch IP Lookup
 Endpoint: POST /batch
 
@@ -118,15 +129,17 @@ Get geolocation data for multiple IP addresses in a single request.
 
 Example Request:
 
-bash
+```bash
 curl -X POST http://localhost:8080/batch \
   -H "Content-Type: application/json" \
   -d '{
     "ips": ["8.8.8.8", "1.1.1.1", "invalid-ip"]
   }'
+```
+
 Response:
 
-json
+```json
 {
   "8.8.8.8": {
     "ip": "8.8.8.8",
@@ -153,7 +166,9 @@ json
     "error": "invalid IP address: invalid-ip"
   }
 }
+```
 Response Fields
+
 Field	Type	Description
 ip	string	The IP address that was queried
 country	string	Country name in English
@@ -192,36 +207,12 @@ Upload to S3
 
 Trigger service restart (or implement hot-reloading)
 
-Docker Deployment
-Create a Dockerfile:
-
-dockerfile
-FROM golang:1.21-alpine AS builder
-
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-RUN go build -o geoip-service .
-
-FROM alpine:latest
-
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-
-COPY --from=builder /app/geoip-service .
-COPY --from=builder /app/.env .
-
-EXPOSE 8080
-CMD ["./geoip-service"]
-Build and run:
-
-bash
+```bash
 docker build -t geoip-service .
 docker run -p 8080:8080 --env-file .env geoip-service
 Monitoring and Logging
 The service provides structured JSON logs with the following information:
+````
 
 Request method and URL
 
@@ -235,7 +226,7 @@ User agent
 
 Example log entry:
 
-json
+```json
 {
   "level": "info",
   "method": "GET",
@@ -246,6 +237,8 @@ json
   "duration": 2.145833,
   "time": "2023-10-05T12:00:00Z"
 }
+````
+
 Error Handling
 The service returns appropriate HTTP status codes:
 
