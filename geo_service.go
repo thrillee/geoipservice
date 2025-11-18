@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/rs/zerolog"
 
@@ -33,18 +32,16 @@ func NewGeoIPService(ctx context.Context, cfg *Config) (*GeoIPService, error) {
 	}
 
 	// Connect to Redis
-	redisOpt := &redis.Options{
-		Addr:     cfg.RedisAddr,
-		Password: cfg.RedisPassword,
-		DB:       cfg.RedisDB,
+	opts, err := redis.ParseURL(fmt.Sprintf("%s", cfg.RedisAddr))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse redis URL: %w", err)
 	}
 
-	rdb := redis.NewClient(redisOpt)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
+	rdb := redis.NewClient(opts)
 
-	if _, err := rdb.Ping(ctx).Result(); err != nil {
-		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
+	_, err = rdb.Ping(ctx).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to redis: %w", err)
 	}
 
 	logger.Info().Msg("GeoIP service initialized successfully")
